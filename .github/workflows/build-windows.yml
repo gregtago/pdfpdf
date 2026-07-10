@@ -1,4 +1,4 @@
-name: Build OCR PDF installer (Windows)
+name: Build Scribe (installeur Windows)
 
 # Fabrique l'installeur .exe autonome (service + Tesseract + Ghostscript).
 # Se lance manuellement, ou à chaque push.
@@ -30,7 +30,7 @@ jobs:
           pip install -r requirements.txt pyinstaller
 
       - name: Compiler l'exécutable (PyInstaller)
-        run: pyinstaller --noconfirm --workpath dist/_pyiwork build/ocr-service.spec
+        run: pyinstaller --noconfirm --workpath dist/_pyiwork build/scribe.spec
 
       - name: Installer les moteurs OCR (Tesseract, Ghostscript, NSSM)
         run: |
@@ -53,6 +53,6 @@ jobs:
       - name: Publier l'installeur (artefact téléchargeable)
         uses: actions/upload-artifact@v4
         with:
-          name: OCR-PDF-Service-Setup
+          name: Scribe-Setup
           path: dist/installer/*.exe
           if-no-files-found: error

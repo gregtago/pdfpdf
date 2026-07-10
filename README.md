@@ -1,6 +1,6 @@
-# Service OCR PDF — reconnaissance de texte en tâche de fond
+# Scribe — reconnaissance de texte sur PDF, en tâche de fond
 
-Ce petit logiciel tourne **en tâche de fond sous Windows**. Il surveille un
+**Scribe** tourne **en tâche de fond sous Windows**. Il surveille un
 dossier (et **tous ses sous-dossiers**) et, dès qu'un PDF « image » (un scan)
 y apparaît, il lance automatiquement une **reconnaissance de texte (OCR)** et
 remplace le fichier par une version **PDF texte recherchable** — même
@@ -24,7 +24,7 @@ Tesseract), la référence libre pour ce besoin.
 ## Version installeur (service Windows autonome)
 
 Pour la plupart des usages, préférez l'**installeur** : il crée un service
-Windows `OcrPdfService` qui démarre automatiquement avec le PC, se relance en
+Windows `Scribe` qui démarre automatiquement avec le PC, se relance en
 cas d'incident, et n'exige aucun prérequis (Tesseract et Ghostscript sont
 embarqués).
 
@@ -48,7 +48,7 @@ tests, ou installation sans passer par l'installeur).
   (aucune sauvegarde par défaut ; une copie reste activable si besoin).
 - Corrige l'inclinaison et l'orientation des pages scannées de travers.
 - Traite les fichiers **un par un** pour ne pas saturer le poste.
-- Tient un **journal** (`ocr-service.log`) de tout ce qu'il fait.
+- Tient un **journal** (`scribe.log`) de tout ce qu'il fait.
 
 ---
 
@@ -85,7 +85,7 @@ gswin64c --version
 
 ## 3. Installation du service
 
-Dans une invite de commandes, placez-vous dans le dossier `ocr-service` puis :
+Dans une invite de commandes, placez-vous dans le dossier `scribe` puis :
 
 ```powershell
 python -m pip install -r requirements.txt
@@ -116,7 +116,7 @@ keep_backup = false                              # remplacement pur (sans sauveg
 Lancez-le dans une fenêtre pour voir ce qu'il fait :
 
 ```powershell
-python -m ocr_service
+python -m scribe
 ```
 
 Déposez un PDF scanné dans le dossier surveillé : il doit être traité en
@@ -125,7 +125,7 @@ quelques secondes (le journal s'affiche à l'écran). `Ctrl+C` pour arrêter.
 Pour traiter uniquement les fichiers déjà présents puis quitter :
 
 ```powershell
-python -m ocr_service --once
+python -m scribe --once
 ```
 
 ---
@@ -141,7 +141,7 @@ powershell -ExecutionPolicy Bypass -File install\install-task.ps1
 Puis, pour le démarrer immédiatement sans redémarrer la session :
 
 ```powershell
-Start-ScheduledTask -TaskName "OCR-PDF-Service"
+Start-ScheduledTask -TaskName "Scribe"
 ```
 
 Pour le désinstaller :
@@ -178,7 +178,7 @@ powershell -ExecutionPolicy Bypass -File install\uninstall-task.ps1
 - **Rien ne se passe sur un lecteur réseau** → laissez `use_polling = true`.
 - **PDF ignoré** → il est peut-être déjà textuel (rien à faire) ou protégé par
   mot de passe (indiqué dans le journal).
-- Consultez `ocr-service.log` : chaque fichier traité, ignoré ou en erreur y
+- Consultez `scribe.log` : chaque fichier traité, ignoré ou en erreur y
   est tracé.
 
 ---
@@ -186,9 +186,9 @@ powershell -ExecutionPolicy Bypass -File install\uninstall-task.ps1
 ## 8. Structure du projet
 
 ```
-ocr-service/
-├── ocr_service/
-│   ├── __main__.py       # point d'entrée : python -m ocr_service
+scribe/
+├── scribe/
+│   ├── __main__.py       # point d'entrée : python -m scribe
 │   ├── config.py         # lecture de config.toml
 │   ├── paths.py          # chemins + localisation des moteurs embarqués
 │   ├── watcher.py        # surveillance + file d'attente
@@ -197,7 +197,7 @@ ocr-service/
 │   └── logging_setup.py  # journalisation
 ├── build/                # fabrication de l'installeur
 │   ├── entrypoint.py     # point d'entrée PyInstaller
-│   ├── ocr-service.spec  # spécification PyInstaller
+│   ├── scribe.spec  # spécification PyInstaller
 │   ├── fetch-vendor.ps1  # récupère Tesseract/Ghostscript/NSSM
 │   ├── installer.iss     # script Inno Setup (.exe)
 │   └── README-build.md   # guide de compilation

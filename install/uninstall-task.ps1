@@ -1,10 +1,10 @@
 # ---------------------------------------------------------------------------
-# Désinstalle la tâche planifiée du service OCR PDF.
+# Désinstalle la tâche planifiée de Scribe.
 #     powershell -ExecutionPolicy Bypass -File install\uninstall-task.ps1
 # ---------------------------------------------------------------------------
 
 param(
-    [string]$TaskName = "OCR-PDF-Service"
+    [string]$TaskName = "Scribe"
 )
 
 $ErrorActionPreference = "Stop"

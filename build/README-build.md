@@ -3,7 +3,7 @@
 L'installeur `.exe` est **autonome** : il embarque l'application, le moteur
 Tesseract (français inclus) et Ghostscript. L'utilisateur final n'a **rien
 d'autre à installer**. À l'installation, un **vrai service Windows** (nommé
-`OcrPdfService`) est créé, démarré et configuré pour se lancer au démarrage du
+`Scribe`) est créé, démarré et configuré pour se lancer au démarrage du
 PC, avec redémarrage automatique en cas d'arrêt inattendu (géré par NSSM).
 
 ## Le plus simple : GitHub Actions (recommandé)
@@ -12,9 +12,9 @@ Le workflow [`.github/workflows/build-windows.yml`](../.github/workflows/build-w
 compile tout sur un runner Windows. Vous n'installez aucun outil.
 
 1. Poussez un commit, ou lancez le workflow manuellement : onglet **Actions**
-   → *Build OCR PDF installer (Windows)* → **Run workflow**.
-2. À la fin, téléchargez l'artefact **OCR-PDF-Service-Setup** : il contient
-   `OCR-PDF-Service-Setup-1.0.0.exe`.
+   → *Build Scribe (installeur Windows)* → **Run workflow**.
+2. À la fin, téléchargez l'artefact **Scribe-Setup** : il contient
+   `Scribe-Setup-1.0.0.exe`.
 3. Transférez ce fichier sur le poste cible et double-cliquez dessus.
 
 ## Compilation manuelle (sur un poste Windows)
@@ -30,7 +30,7 @@ Ensuite, depuis la racine du dépôt :
 
 ```powershell
 pip install -r requirements.txt pyinstaller
-pyinstaller --noconfirm --workpath dist/_pyiwork build/ocr-service.spec
+pyinstaller --noconfirm --workpath dist/_pyiwork build/scribe.spec
 powershell -ExecutionPolicy Bypass -File build/fetch-vendor.ps1
 & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" build\installer.iss
 ```
@@ -40,20 +40,20 @@ L'installeur est produit dans `dist/installer/`.
 ## Ce que fait l'installeur
 
 1. Copie l'application et le dossier `vendor/` (Tesseract + Ghostscript) dans
-   `C:\Program Files\OCR PDF Service`.
+   `C:\Program Files\Scribe`.
 2. Demande le **dossier à surveiller** (par défaut `Documents\PDF`).
-3. Génère `C:\ProgramData\OcrPdfService\config.toml`.
-4. Crée le service Windows `OcrPdfService` avec NSSM (démarrage automatique,
+3. Génère `C:\ProgramData\Scribe\config.toml`.
+4. Crée le service Windows `Scribe` avec NSSM (démarrage automatique,
    redémarrage sur incident) et le lance.
 
-Journal du service : `C:\ProgramData\OcrPdfService\ocr-service.log`.
+Journal du service : `C:\ProgramData\Scribe\scribe.log`.
 
 ## Gestion du service (poste cible)
 
 ```powershell
-Get-Service OcrPdfService          # état
-Restart-Service OcrPdfService      # après modification du config.toml
-Stop-Service OcrPdfService
+Get-Service Scribe          # état
+Restart-Service Scribe      # après modification du config.toml
+Stop-Service Scribe
 ```
 
 ## Note importante — dossiers réseau
@@ -64,8 +64,8 @@ mappées). Si les PDF sont sur un partage réseau, faites tourner le service sou
 un compte utilisateur ayant les droits, par exemple :
 
 ```powershell
-& "C:\Program Files\OCR PDF Service\nssm.exe" set OcrPdfService ObjectName "DOMAINE\utilisateur" "MotDePasse"
-Restart-Service OcrPdfService
+& "C:\Program Files\Scribe\nssm.exe" set Scribe ObjectName "DOMAINE\utilisateur" "MotDePasse"
+Restart-Service Scribe
 ```
 
 ## Composants tiers

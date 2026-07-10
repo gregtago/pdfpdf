@@ -16,7 +16,7 @@ from pathlib import Path
 
 from .config import Config
 
-logger = logging.getLogger("ocr_service.processor")
+logger = logging.getLogger("scribe.processor")
 
 
 def _backup_original(pdf: Path, config: Config) -> None:

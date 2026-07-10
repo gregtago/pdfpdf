@@ -23,7 +23,7 @@ from .config import Config
 from .processor import process_pdf
 from .state import ProcessedStore
 
-logger = logging.getLogger("ocr_service.watcher")
+logger = logging.getLogger("scribe.watcher")
 
 
 def _is_candidate(path: Path, config: Config) -> bool:

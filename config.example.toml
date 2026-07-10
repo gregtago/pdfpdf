@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Configuration du service OCR PDF
+# Configuration de Scribe
 # Copiez ce fichier en "config.toml" et adaptez les valeurs.
 # Sous Windows, écrivez les chemins avec des barres obliques normales "/"
 # (ex. "C:/Users/martin/Documents/Actes") : cela fonctionne parfaitement.
@@ -41,4 +41,4 @@ stable_seconds = 5
 rescan_seconds = 300
 
 # --- Journalisation ------------------------------------------------------
-log_file = "ocr-service.log"
+log_file = "scribe.log"

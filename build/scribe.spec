@@ -1,10 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
-"""Spécification PyInstaller pour l'exécutable du service OCR PDF.
+"""Spécification PyInstaller pour l'exécutable de Scribe.
 
-Compilation (depuis le dossier ocr-service) :
-    pyinstaller --noconfirm build/ocr-service.spec
+Compilation (depuis la racine du dépôt) :
+    pyinstaller --noconfirm build/scribe.spec
 
-Produit dist/ocr-service/ocr-service.exe (+ dossier _internal). OCRmyPDF
+Produit dist/scribe/scribe.exe (+ dossier _internal). OCRmyPDF
 importe dynamiquement de nombreux sous-modules et lit ses métadonnées de
 distribution : on force donc leur collecte complète.
 """
@@ -50,7 +50,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="ocr-service",
+    name="scribe",
     console=False,          # exécutable fenêtré : pas de console qui clignote
     disable_windowed_traceback=False,
 )
@@ -61,5 +61,5 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=False,
-    name="ocr-service",
+    name="scribe",
 )

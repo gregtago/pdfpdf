@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------
-# Installe le service OCR PDF comme tâche planifiée Windows.
+# Installe Scribe comme tâche planifiée Windows.
 # La tâche démarre automatiquement à l'ouverture de session, sans fenêtre.
 #
 # Utilisation (dans PowerShell, depuis le dossier du projet) :
@@ -7,7 +7,7 @@
 # ---------------------------------------------------------------------------
 
 param(
-    [string]$TaskName = "OCR-PDF-Service",
+    [string]$TaskName = "Scribe",
     [string]$PythonExe = "pythonw.exe"   # pythonw = sans fenêtre console
 )
 
@@ -24,7 +24,7 @@ if (-not (Test-Path $configPath)) {
 }
 
 $action = New-ScheduledTaskAction -Execute $PythonExe `
-    -Argument "-m ocr_service" -WorkingDirectory $projectDir
+    -Argument "-m scribe" -WorkingDirectory $projectDir
 
 $trigger = New-ScheduledTaskTrigger -AtLogOn
 

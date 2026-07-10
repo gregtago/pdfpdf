@@ -21,7 +21,7 @@ class Config:
     use_polling: bool = True
     stable_seconds: float = 5.0
     rescan_seconds: float = 300.0
-    log_file: str = "ocr-service.log"
+    log_file: str = "scribe.log"
 
     @property
     def language_arg(self) -> str:
@@ -66,5 +66,5 @@ def load_config(path: str | Path) -> Config:
         use_polling=bool(data.get("use_polling", True)),
         stable_seconds=float(data.get("stable_seconds", 5.0)),
         rescan_seconds=float(data.get("rescan_seconds", 300.0)),
-        log_file=str(data.get("log_file", "ocr-service.log")),
+        log_file=str(data.get("log_file", "scribe.log")),
     )

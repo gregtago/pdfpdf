@@ -7,7 +7,7 @@ départ ; ce fichier se contente d'appeler la fonction main() du paquet.
 import multiprocessing
 import sys
 
-from ocr_service.__main__ import main
+from scribe.__main__ import main
 
 if __name__ == "__main__":
     # Nécessaire quand le programme est gelé (évite les relances de process).

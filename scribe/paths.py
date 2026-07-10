@@ -4,7 +4,7 @@ En mode « développement » (lancé avec Python), les chemins sont relatifs au
 projet. En mode « installé » (exécutable PyInstaller), les binaires Tesseract
 et Ghostscript sont embarqués dans le sous-dossier ``vendor`` à côté de l'exe,
 et les données modifiables (config, journal, état) vont dans
-``%ProgramData%\\OcrPdfService`` — seul emplacement fiable en écriture pour un
+``%ProgramData%\\Scribe`` — seul emplacement fiable en écriture pour un
 service Windows.
 """
 
@@ -14,7 +14,7 @@ import os
 import sys
 from pathlib import Path
 
-APP_NAME = "OcrPdfService"
+APP_NAME = "Scribe"
 
 
 def is_frozen() -> bool:

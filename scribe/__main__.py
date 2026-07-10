@@ -1,4 +1,4 @@
-"""Point d'entrée du service : python -m ocr_service [config.toml]."""
+"""Point d'entrée du service : python -m scribe [config.toml]."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from .state import ProcessedStore
 from .watcher import OcrService
 
 DEFAULT_CONFIG_TEMPLATE = """\
-# Configuration du service OCR PDF (générée à l'installation).
+# Configuration de Scribe (générée à l'installation).
 watch_dir = "{watch_dir}"
 languages = ["fra"]
 keep_backup = false
@@ -25,7 +25,7 @@ rotate_pages = true
 use_polling = true
 stable_seconds = 5
 rescan_seconds = 300
-log_file = "ocr-service.log"
+log_file = "scribe.log"
 """
 
 
@@ -50,7 +50,7 @@ def write_default_config(watch_dir: str) -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="ocr_service",
+        prog="scribe",
         description="Service de fond : océrise les PDF d'un dossier (image -> texte).",
     )
     parser.add_argument(
@@ -91,7 +91,7 @@ def main(argv: list[str] | None = None) -> int:
     if not log_path.is_absolute():
         log_path = paths.data_dir() / log_path
     logger = setup_logging(log_path)
-    logger.info("Démarrage du service OCR PDF.")
+    logger.info("Démarrage de Scribe.")
 
     state = ProcessedStore(log_path.with_name(".ocr_state.json"))
     service = OcrService(config, state)

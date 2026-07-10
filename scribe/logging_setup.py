@@ -15,7 +15,7 @@ def setup_logging(log_file: str | Path) -> logging.Logger:
     sortie standard, ce qui reste lisible même lancé en tâche de fond.
     """
     log_file = Path(log_file)
-    logger = logging.getLogger("ocr_service")
+    logger = logging.getLogger("scribe")
     logger.setLevel(logging.INFO)
     logger.handlers.clear()
 

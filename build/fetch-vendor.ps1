@@ -4,14 +4,14 @@
 # (par exemple via Chocolatey dans le workflow GitHub Actions).
 #
 # Produit :
-#   ocr-service/vendor/tesseract/...  (tesseract.exe + tessdata fra/eng/osd)
-#   ocr-service/vendor/gs/bin/gswin64c.exe ...
-#   ocr-service/build/nssm.exe
+#   scribe/vendor/tesseract/...  (tesseract.exe + tessdata fra/eng/osd)
+#   scribe/vendor/gs/bin/gswin64c.exe ...
+#   scribe/build/nssm.exe
 # ---------------------------------------------------------------------------
 
 $ErrorActionPreference = "Stop"
 $buildDir = $PSScriptRoot
-$root     = Split-Path -Parent $buildDir          # dossier ocr-service
+$root     = Split-Path -Parent $buildDir          # dossier scribe
 $vendor   = Join-Path $root "vendor"
 
 New-Item -ItemType Directory -Force -Path $vendor | Out-Null
