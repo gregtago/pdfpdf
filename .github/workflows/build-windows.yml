@@ -1,0 +1,58 @@
+name: Build OCR PDF installer (Windows)
+
+# Fabrique l'installeur .exe autonome (service + Tesseract + Ghostscript).
+# Se lance manuellement, ou à chaque push.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dépendances Python (+ PyInstaller)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Compiler l'exécutable (PyInstaller)
+        run: pyinstaller --noconfirm --workpath dist/_pyiwork build/ocr-service.spec
+
+      - name: Installer les moteurs OCR (Tesseract, Ghostscript, NSSM)
+        run: |
+          choco install tesseract ghostscript nssm --no-progress -y
+          # Rafraîchit le PATH pour la même session PowerShell.
+          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+          Update-SessionEnvironment
+
+      - name: Préparer le dossier vendor
+        run: powershell -ExecutionPolicy Bypass -File build/fetch-vendor.ps1
+
+      - name: Installer Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Construire l'installeur
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          & $iscc "build\installer.iss"
+
+      - name: Publier l'installeur (artefact téléchargeable)
+        uses: actions/upload-artifact@v4
+        with:
+          name: OCR-PDF-Service-Setup
+          path: dist/installer/*.exe
+          if-no-files-found: error

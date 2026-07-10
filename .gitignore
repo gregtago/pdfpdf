@@ -1,0 +1,19 @@
+# Configuration locale et état d'exécution
+config.toml
+.ocr_state.json
+*.log
+*.log.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Artefacts de compilation (générés par PyInstaller / CI)
+dist/
+vendor/
+build/nssm.exe
+*.exe
+*.msi

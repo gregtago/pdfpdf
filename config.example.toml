@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# Configuration du service OCR PDF
+# Copiez ce fichier en "config.toml" et adaptez les valeurs.
+# Sous Windows, écrivez les chemins avec des barres obliques normales "/"
+# (ex. "C:/Users/martin/Documents/Actes") : cela fonctionne parfaitement.
+# ---------------------------------------------------------------------------
+
+# Dossier racine à surveiller. Tous les sous-dossiers sont inclus
+# automatiquement, à n'importe quelle profondeur.
+watch_dir = "C:/Users/VOTRE_NOM/Documents/PDF"
+
+# Langues de reconnaissance (codes Tesseract).
+# fra = français, eng = anglais. Vous pouvez en cumuler plusieurs.
+languages = ["fra"]
+
+# --- Remplacement du fichier --------------------------------------------
+# Le PDF d'origine est remplacé purement et simplement sur place par la
+# version recherchable. AUCUNE sauvegarde n'est conservée par défaut.
+keep_backup = false
+# (Optionnel) Si vous passez keep_backup à true, sous-dossier où ranger la
+# copie de l'original. Vide ("") -> copie "<nom>.orig.pdf" à côté.
+backup_dir = "_originaux"
+
+# --- Qualité / traitement ------------------------------------------------
+# Niveau d'optimisation / compression (0 = aucune, 1 = sûr, 2-3 = plus fort).
+optimize = 1
+# Corrige l'inclinaison des pages scannées de travers.
+deskew = true
+# Fait pivoter automatiquement les pages dans le bon sens.
+rotate_pages = true
+
+# --- Surveillance --------------------------------------------------------
+# Scrutation périodique (polling) : plus fiable sur les lecteurs réseau
+# partagés que la détection d'événements native. Recommandé à true en étude.
+use_polling = true
+# Nombre de secondes pendant lesquelles la taille d'un fichier doit rester
+# stable avant de le traiter (garantit que la copie/scan est terminée).
+stable_seconds = 5
+# Nouvelle analyse complète du dossier toutes les N secondes (filet de
+# sécurité au cas où un événement serait manqué). 0 pour désactiver.
+rescan_seconds = 300
+
+# --- Journalisation ------------------------------------------------------
+log_file = "ocr-service.log"
