@@ -32,6 +32,21 @@ jobs:
       - name: Compiler l'exécutable (PyInstaller)
         run: pyinstaller --noconfirm --workpath dist/_pyiwork build/scribe.spec
 
+      - name: Vérifier que l'exécutable démarre réellement
+        timeout-minutes: 3
+        run: |
+          # Lance l'exe gelé : --init-config exerce tout le chargement du
+          # paquet 'scribe' (et watchdog) sans dépendre des moteurs OCR.
+          # Échoue si le paquet n'est pas embarqué (ModuleNotFoundError).
+          $exe = "dist/scribe/scribe.exe"
+          if (-not (Test-Path $exe)) { throw "Exécutable introuvable : $exe" }
+          Remove-Item "$env:ProgramData\Scribe\config.toml" -ErrorAction SilentlyContinue
+          Start-Process -FilePath $exe -ArgumentList "--init-config","$env:TEMP\scribe-selftest" -Wait -PassThru | Out-Null
+          if (-not (Test-Path "$env:ProgramData\Scribe\config.toml")) {
+            throw "scribe.exe n'a pas généré la configuration : le paquet 'scribe' n'est pas embarqué correctement."
+          }
+          Write-Host "OK : scribe.exe démarre et génère sa configuration."
+
       - name: Installer les moteurs OCR (Tesseract, Ghostscript, NSSM)
         run: |
           choco install tesseract ghostscript nssm --no-progress -y

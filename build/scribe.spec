@@ -9,11 +9,25 @@ importe dynamiquement de nombreux sous-modules et lit ses métadonnées de
 distribution : on force donc leur collecte complète.
 """
 
-from PyInstaller.utils.hooks import collect_all, copy_metadata
+import os
+import sys
+
+from PyInstaller.utils.hooks import collect_all, collect_submodules, copy_metadata
+
+# Racine du dépôt = dossier parent de ce fichier .spec (situé dans build/).
+# On la calcule en absolu et on l'ajoute au chemin d'import : sans cela, un
+# 'pathex' relatif se résout par rapport au dossier courant de compilation et
+# le paquet "scribe" n'est pas trouvé -> "No module named 'scribe'".
+REPO_ROOT = os.path.abspath(os.path.join(SPECPATH, os.pardir))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 datas = []
 binaries = []
 hiddenimports = []
+
+# Notre propre paquet : on embarque explicitement tous ses sous-modules.
+hiddenimports += collect_submodules("scribe")
 
 # Paquets à embarquer intégralement (code, données, métadonnées).
 for pkg in ("ocrmypdf", "pikepdf", "img2pdf", "pdfminer", "PIL", "reportlab", "pluggy"):
@@ -32,8 +46,8 @@ for dist in ("ocrmypdf", "img2pdf"):
 
 
 a = Analysis(
-    ["entrypoint.py"],
-    pathex=[".."],
+    [os.path.join(SPECPATH, "entrypoint.py")],
+    pathex=[REPO_ROOT],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,
