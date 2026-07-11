@@ -49,11 +49,24 @@ Copy-Item $gsBase.FullName $gsDst -Recurse -Force
 Write-Host "Ghostscript copié -> $gsDst (depuis $($gsBase.Name))"
 
 # --- NSSM ------------------------------------------------------------------
-$nssm = (Get-Command nssm -ErrorAction SilentlyContinue).Source
-if (-not $nssm) {
-    throw "NSSM introuvable (choco install nssm)."
+# IMPORTANT : ne PAS copier le shim Chocolatey (C:\ProgramData\chocolatey\bin\
+# nssm.exe) — ce n'est qu'un lanceur qui ne fonctionne que sur cette machine.
+# On copie le VRAI binaire 64 bits depuis le dossier lib de Chocolatey.
+$nssmReal =
+    Get-ChildItem "C:\ProgramData\chocolatey\lib" -Recurse -Filter nssm.exe -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName -match '\\win64\\' } | Select-Object -First 1
+if (-not $nssmReal) {
+    $nssmReal = Get-ChildItem "C:\ProgramData\chocolatey\lib" -Recurse -Filter nssm.exe -ErrorAction SilentlyContinue |
+        Select-Object -First 1
 }
-Copy-Item $nssm (Join-Path $buildDir "nssm.exe") -Force
-Write-Host "NSSM copié -> $(Join-Path $buildDir 'nssm.exe')"
+if (-not $nssmReal) {
+    throw "Vrai nssm.exe introuvable sous chocolatey\lib (choco install nssm ?)."
+}
+# Garde-fou : le shim fait quelques Ko, le vrai binaire en fait ~250+.
+if ($nssmReal.Length -lt 100000) {
+    throw "nssm.exe trouvé trop petit ($($nssmReal.Length) octets) : c'est probablement un shim, pas le vrai binaire."
+}
+Copy-Item $nssmReal.FullName (Join-Path $buildDir "nssm.exe") -Force
+Write-Host "NSSM (réel) copié -> $(Join-Path $buildDir 'nssm.exe') depuis $($nssmReal.FullName)"
 
 Write-Host "vendor prêt."

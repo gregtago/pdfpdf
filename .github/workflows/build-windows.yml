@@ -83,6 +83,31 @@ jobs:
           $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           & $iscc "build\installer.iss"
 
+      - name: Vérifier l'installation complète (service créé, démarré, état publié)
+        timeout-minutes: 6
+        run: |
+          # Installe RÉELLEMENT l'installeur en silencieux sur ce runner propre,
+          # puis vérifie que le service est créé, démarre et publie son état.
+          # C'est ce test qui manquait : il attrape les problèmes de service
+          # (ex. nssm shim) que la simple compilation ne voit pas.
+          $exe = Get-ChildItem dist/installer/*.exe | Select-Object -First 1
+          Write-Host "Installation silencieuse de $($exe.Name)…"
+          Start-Process -FilePath $exe.FullName -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART" -Wait
+          Start-Sleep -Seconds 6
+
+          $svc = Get-Service Scribe -ErrorAction SilentlyContinue
+          if (-not $svc) { throw "ÉCHEC : le service 'Scribe' n'a pas été créé par l'installeur." }
+          Write-Host "Service 'Scribe' présent — état : $($svc.Status)"
+
+          if (-not (Test-Path "$env:ProgramData\Scribe\status.json")) {
+            Write-Host "--- service-err.log ---"
+            Get-Content "$env:ProgramData\Scribe\service-err.log" -Tail 30 -ErrorAction SilentlyContinue
+            throw "ÉCHEC : le service ne publie pas status.json (il ne tourne pas)."
+          }
+          Write-Host "OK : service créé, démarré et status.json publié."
+          # Nettoyage silencieux (runner éphémère, mais on reste propre).
+          & "C:\Program Files\Scribe\unins000.exe" /VERYSILENT 2>$null
+
       - name: Publier l'installeur (artefact téléchargeable)
         uses: actions/upload-artifact@v4
         with:
