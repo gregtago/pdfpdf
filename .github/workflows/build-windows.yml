@@ -75,30 +75,6 @@ jobs:
       - name: Préparer le dossier vendor
         run: powershell -ExecutionPolicy Bypass -File build/fetch-vendor.ps1
 
-      - name: Test OCR réel (PDF image -> texte recherchable)
-        timeout-minutes: 6
-        run: |
-          # LE test qui manquait : océrise un vrai PDF image avec l'exe gelé et
-          # vérifie qu'une couche texte est bien produite. Attrape les erreurs
-          # d'appel OCR (ex. mauvais arguments) que rien d'autre ne voit.
-          $work = Join-Path $env:TEMP "ocrtest"
-          New-Item -ItemType Directory -Force -Path $work | Out-Null
-          $pdf = Join-Path $work "scan.pdf"
-          python build/make_test_pdf.py "$pdf"
-          $wd = $work -replace '\\','/'
-          "watch_dir = `"$wd`"`nrescan_seconds = 0`nstable_seconds = 0" |
-            Out-File -Encoding utf8 (Join-Path $work "config.toml")
-          Start-Process -FilePath "dist/scribe/scribe.exe" `
-            -ArgumentList (Join-Path $work "config.toml"), "--once" -Wait
-          $txt = python -c "from pdfminer.high_level import extract_text; print(extract_text(r'$pdf'))"
-          Write-Host "Texte extrait du PDF : '$txt'"
-          if (-not ($txt -match '\w')) {
-            Write-Host "--- scribe.log ---"
-            Get-Content "$env:ProgramData\Scribe\scribe.log" -Tail 20 -ErrorAction SilentlyContinue
-            throw "ECHEC : aucun texte extrait, l'OCR n'a pas ajoute de couche texte."
-          }
-          Write-Host "OK : l'OCR produit bien une couche texte recherchable."
-
       - name: Installer Inno Setup
         run: choco install innosetup --no-progress -y
 
@@ -129,8 +105,31 @@ jobs:
             throw "ÉCHEC : le service ne publie pas status.json (il ne tourne pas)."
           }
           Write-Host "OK : service créé, démarré et status.json publié."
-          # Nettoyage silencieux (runner éphémère, mais on reste propre).
-          & "C:\Program Files\Scribe\unins000.exe" /VERYSILENT 2>$null
+
+      - name: Test OCR réel avec le moteur français EMBARQUÉ (bout en bout)
+        timeout-minutes: 6
+        run: |
+          # Utilise l'exe INSTALLÉ (C:\Program Files\Scribe) : il embarque son
+          # propre Tesseract avec le français (tessdata_best/fra), contrairement
+          # au Tesseract système du runner. Océrise un vrai PDF et vérifie la
+          # couche texte -> valide l'appel OCR + la présence du français.
+          $work = Join-Path $env:TEMP "ocrtest"
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $pdf = Join-Path $work "scan.pdf"
+          python build/make_test_pdf.py "$pdf"
+          $wd = $work -replace '\\','/'
+          "watch_dir = `"$wd`"`nrescan_seconds = 0`nstable_seconds = 0" |
+            Out-File -Encoding utf8 (Join-Path $work "config.toml")
+          Start-Process -FilePath "C:\Program Files\Scribe\scribe.exe" `
+            -ArgumentList (Join-Path $work "config.toml"), "--once" -Wait
+          $txt = python -c "from pdfminer.high_level import extract_text; print(extract_text(r'$pdf'))"
+          Write-Host "Texte extrait du PDF : '$txt'"
+          if (-not ($txt -match '\w')) {
+            Write-Host "--- scribe.log ---"
+            Get-Content "$env:ProgramData\Scribe\scribe.log" -Tail 25 -ErrorAction SilentlyContinue
+            throw "ECHEC : aucun texte extrait, l'OCR (francais embarque) n'a pas fonctionne."
+          }
+          Write-Host "OK : OCR francais embarque fonctionnel, couche texte produite."
 
       - name: Publier l'installeur (artefact téléchargeable)
         uses: actions/upload-artifact@v4
