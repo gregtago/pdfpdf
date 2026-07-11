@@ -3,3 +3,5 @@
 
 ocrmypdf>=16.0.0   # moteur OCR : ajoute une couche texte au PDF (via Tesseract + Ghostscript)
 watchdog>=4.0.0    # surveillance des dossiers en temps réel
+pystray>=0.19.0    # icône dans la barre des tâches (app compagnon)
+Pillow>=10.0.0     # image de l'icône (déjà requis par OCRmyPDF)

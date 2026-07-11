@@ -29,10 +29,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pyinstaller
 
-      - name: Compiler l'exécutable (PyInstaller)
+      - name: Compiler le service (PyInstaller)
         run: pyinstaller --noconfirm --workpath dist/_pyiwork build/scribe.spec
 
-      - name: Vérifier que l'exécutable démarre réellement
+      - name: Compiler l'app de la barre des tâches (PyInstaller)
+        run: pyinstaller --noconfirm --workpath dist/_pyiwork build/scribe-tray.spec
+
+      - name: Vérifier que le service démarre réellement
         timeout-minutes: 3
         run: |
           # Lance l'exe gelé : --init-config exerce tout le chargement du
@@ -46,6 +49,12 @@ jobs:
             throw "scribe.exe n'a pas généré la configuration : le paquet 'scribe' n'est pas embarqué correctement."
           }
           Write-Host "OK : scribe.exe démarre et génère sa configuration."
+
+      - name: Vérifier que l'app barre des tâches est bien empaquetée
+        run: |
+          $exe = "dist/scribe-tray/scribe-tray.exe"
+          if (-not (Test-Path $exe)) { throw "Exécutable introuvable : $exe" }
+          Write-Host "OK : scribe-tray.exe présent."
 
       - name: Installer les moteurs OCR (Tesseract, Ghostscript, NSSM)
         run: |

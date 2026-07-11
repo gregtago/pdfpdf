@@ -48,7 +48,18 @@ tests, ou installation sans passer par l'installeur).
   (aucune sauvegarde par défaut ; une copie reste activable si besoin).
 - Corrige l'inclinaison et l'orientation des pages scannées de travers.
 - Traite les fichiers **un par un** pour ne pas saturer le poste.
+- **Priorité aux nouveaux fichiers** : un PDF déposé maintenant passe devant le
+  lot de fichiers déjà présents au démarrage (plus d'attente derrière la file).
+- **Icône dans la barre des tâches** (bas à droite) avec une **fenêtre de
+  progression** : nombre de PDF traités / restants, fichier en cours, barre
+  d'avancement, derniers fichiers traités. Voir la section dédiée ci-dessous.
 - Tient un **journal** (`scribe.log`) de tout ce qu'il fait.
+
+> **Comment ça marche.** Le travail d'OCR est fait par un *service Windows*
+> (robuste, en fond). Comme un service ne peut pas afficher d'interface, une
+> petite **application compagnon** (`scribe-tray.exe`) démarre à l'ouverture de
+> session et affiche l'icône + la progression, en lisant l'état publié par le
+> service. Double-cliquez l'icône pour ouvrir la fenêtre de progression.
 
 ---
 
@@ -188,16 +199,20 @@ powershell -ExecutionPolicy Bypass -File install\uninstall-task.ps1
 ```
 scribe/
 ├── scribe/
-│   ├── __main__.py       # point d'entrée : python -m scribe
+│   ├── __main__.py       # point d'entrée du service : python -m scribe
 │   ├── config.py         # lecture de config.toml
 │   ├── paths.py          # chemins + localisation des moteurs embarqués
-│   ├── watcher.py        # surveillance + file d'attente
+│   ├── watcher.py        # surveillance + file d'attente (prioritaire)
 │   ├── processor.py      # OCR d'un PDF (OCRmyPDF)
 │   ├── state.py          # suivi des fichiers déjà traités
+│   ├── status.py         # publication de l'avancement (status.json)
+│   ├── tray.py           # app barre des tâches : icône + progression
 │   └── logging_setup.py  # journalisation
 ├── build/                # fabrication de l'installeur
-│   ├── entrypoint.py     # point d'entrée PyInstaller
-│   ├── scribe.spec  # spécification PyInstaller
+│   ├── entrypoint.py     # point d'entrée PyInstaller (service)
+│   ├── tray-entrypoint.py# point d'entrée PyInstaller (barre des tâches)
+│   ├── scribe.spec       # spec PyInstaller du service
+│   ├── scribe-tray.spec  # spec PyInstaller de l'app barre des tâches
 │   ├── fetch-vendor.ps1  # récupère Tesseract/Ghostscript/NSSM
 │   ├── installer.iss     # script Inno Setup (.exe)
 │   └── README-build.md   # guide de compilation

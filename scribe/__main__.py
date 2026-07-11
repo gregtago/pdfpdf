@@ -11,6 +11,7 @@ from . import paths
 from .config import load_config
 from .logging_setup import setup_logging
 from .state import ProcessedStore
+from .status import StatusReporter
 from .watcher import OcrService
 
 DEFAULT_CONFIG_TEMPLATE = """\
@@ -94,11 +95,13 @@ def main(argv: list[str] | None = None) -> int:
     logger.info("Démarrage de Scribe.")
 
     state = ProcessedStore(log_path.with_name(".ocr_state.json"))
-    service = OcrService(config, state)
+    reporter = StatusReporter(paths.data_dir() / "status.json")
+    service = OcrService(config, state, reporter)
 
     def _handle_signal(signum, _frame):
         logger.info("Signal %s reçu, arrêt en cours...", signum)
         service.stop()
+        reporter.stop()
 
     for sig in (signal.SIGINT, signal.SIGTERM):
         try:
@@ -108,6 +111,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.once:
         service.run_once()
+        reporter.stop()
         logger.info("Mode --once terminé.")
         return 0
 
@@ -115,6 +119,8 @@ def main(argv: list[str] | None = None) -> int:
         service.run()
     except KeyboardInterrupt:
         service.stop()
+    finally:
+        reporter.stop()
     return 0
 
 

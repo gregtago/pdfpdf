@@ -35,10 +35,15 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 
 [Files]
 Source: "..\dist\scribe\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "..\dist\scribe-tray\*"; DestDir: "{app}\tray"; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "..\vendor\*"; DestDir: "{app}\vendor"; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "nssm.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
+; Démarrage automatique de l'icône de progression à l'ouverture de session.
+Name: "{commonstartup}\Scribe"; Filename: "{app}\tray\scribe-tray.exe"
+; Raccourcis dans le menu Démarrer.
+Name: "{group}\Progression de Scribe"; Filename: "{app}\tray\scribe-tray.exe"
 Name: "{group}\Journal de Scribe"; Filename: "{commonappdata}\Scribe\scribe.log"
 Name: "{group}\Désinstaller {#AppName}"; Filename: "{uninstallexe}"
 
@@ -66,8 +71,12 @@ Filename: "{app}\nssm.exe"; Parameters: "set {#ServiceName} AppStderr ""{commona
 ; 3. Démarre le service immédiatement.
 Filename: "{app}\nssm.exe"; Parameters: "start {#ServiceName}"; \
     Flags: runhidden waituntilterminated
+; 4. Lance l'icône de progression tout de suite (case à cocher en fin d'install).
+Filename: "{app}\tray\scribe-tray.exe"; Description: "Afficher l'icône de progression maintenant"; \
+    Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
+Filename: "{sys}\taskkill.exe"; Parameters: "/im scribe-tray.exe /f"; Flags: runhidden; RunOnceId: "KillTray"
 Filename: "{app}\nssm.exe"; Parameters: "stop {#ServiceName}"; Flags: runhidden waituntilterminated; RunOnceId: "StopSvc"
 Filename: "{app}\nssm.exe"; Parameters: "remove {#ServiceName} confirm"; Flags: runhidden waituntilterminated; RunOnceId: "RemoveSvc"
 

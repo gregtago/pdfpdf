@@ -5,10 +5,15 @@
 - Une nouvelle analyse périodique sert de filet de sécurité.
 - Un unique thread de travail traite les PDF les uns après les autres
   (l'OCR est gourmand : inutile de saturer la machine).
+- Les fichiers déposés en cours de route (détectés en direct) sont prioritaires
+  sur le gros lot initial : un PDF ajouté maintenant passe devant la file.
+- L'avancement est publié via un StatusReporter (lu par l'app de la barre des
+  tâches).
 """
 
 from __future__ import annotations
 
+import itertools
 import logging
 import queue
 import threading
@@ -22,8 +27,13 @@ from watchdog.observers.polling import PollingObserver
 from .config import Config
 from .processor import process_pdf
 from .state import ProcessedStore
+from .status import StatusReporter
 
 logger = logging.getLogger("scribe.watcher")
+
+# Priorités de file (plus petit = traité en premier).
+PRIORITY_LIVE = 0      # fichier déposé/détecté en direct
+PRIORITY_SCAN = 1      # fichier trouvé lors d'un scan complet
 
 
 def _is_candidate(path: Path, config: Config) -> bool:
@@ -38,7 +48,7 @@ def _is_candidate(path: Path, config: Config) -> bool:
 
 
 class _Handler(FileSystemEventHandler):
-    """Met en file d'attente chaque PDF créé ou modifié."""
+    """Met en file d'attente chaque PDF créé ou modifié (en priorité)."""
 
     def __init__(self, enqueue, config: Config) -> None:
         self._enqueue = enqueue
@@ -47,7 +57,7 @@ class _Handler(FileSystemEventHandler):
     def _consider(self, path_str: str) -> None:
         path = Path(path_str)
         if _is_candidate(path, self._config):
-            self._enqueue(path)
+            self._enqueue(path, PRIORITY_LIVE)
 
     def on_created(self, event: FileSystemEvent) -> None:
         if not event.is_directory:
@@ -65,23 +75,32 @@ class _Handler(FileSystemEventHandler):
 class OcrService:
     """Orchestrateur : observateur + file d'attente + thread de travail."""
 
-    def __init__(self, config: Config, state: ProcessedStore) -> None:
+    def __init__(
+        self,
+        config: Config,
+        state: ProcessedStore,
+        reporter: StatusReporter | None = None,
+    ) -> None:
         self._config = config
         self._state = state
-        self._queue: queue.Queue[Path] = queue.Queue()
+        self._reporter = reporter
+        self._queue: queue.PriorityQueue = queue.PriorityQueue()
+        self._seq = itertools.count()
         self._pending: set[str] = set()
         self._pending_lock = threading.Lock()
         self._stop = threading.Event()
         self._worker: threading.Thread | None = None
 
     # -- mise en file d'attente ------------------------------------------
-    def enqueue(self, pdf: Path) -> None:
+    def enqueue(self, pdf: Path, priority: int = PRIORITY_LIVE) -> None:
         key = str(pdf.resolve())
         with self._pending_lock:
             if key in self._pending:
                 return
             self._pending.add(key)
-        self._queue.put(pdf)
+        self._queue.put((priority, next(self._seq), pdf))
+        if self._reporter:
+            self._reporter.on_enqueued()
 
     # -- attente de stabilité --------------------------------------------
     def _wait_until_stable(self, pdf: Path) -> bool:
@@ -109,31 +128,42 @@ class OcrService:
     def _work_loop(self) -> None:
         while not self._stop.is_set():
             try:
-                pdf = self._queue.get(timeout=1.0)
+                _prio, _seq, pdf = self._queue.get(timeout=1.0)
             except queue.Empty:
                 continue
             key = str(pdf.resolve())
+            status = "ignoré"
+            if self._reporter:
+                self._reporter.on_start(pdf)
             try:
                 if not pdf.exists():
+                    status = "disparu"
                     continue
                 if self._state.is_processed(pdf):
+                    status = "déjà fait"
                     continue
                 if not self._wait_until_stable(pdf):
+                    status = "instable"
                     logger.debug("Fichier instable ou disparu : %s", pdf)
                     continue
                 if self._state.is_processed(pdf):
+                    status = "déjà fait"
                     continue
                 try:
-                    process_pdf(pdf, self._config)
+                    processed = process_pdf(pdf, self._config)
+                    status = "ok" if processed else "ignoré"
                 finally:
                     # Quel que soit le résultat, on mémorise la signature
                     # actuelle pour ne pas retraiter en boucle.
                     self._state.mark(pdf)
             except Exception:  # noqa: BLE001 - un fichier ne doit pas tuer le service
+                status = "erreur"
                 logger.exception("Erreur inattendue sur %s", pdf)
             finally:
                 with self._pending_lock:
                     self._pending.discard(key)
+                if self._reporter:
+                    self._reporter.on_done(pdf, status)
                 self._queue.task_done()
 
     # -- scan complet -----------------------------------------------------
@@ -141,7 +171,7 @@ class OcrService:
         count = 0
         for pdf in self._config.watch_dir.rglob("*.pdf"):
             if _is_candidate(pdf, self._config) and not self._state.is_processed(pdf):
-                self.enqueue(pdf)
+                self.enqueue(pdf, PRIORITY_SCAN)
                 count += 1
         if count:
             logger.info("Scan : %d fichier(s) mis en file d'attente.", count)
