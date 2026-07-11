@@ -96,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
 
     state = ProcessedStore(log_path.with_name(".ocr_state.json"))
     reporter = StatusReporter(paths.data_dir() / "status.json")
-    service = OcrService(config, state, reporter)
+    service = OcrService(config, state, reporter, control_dir=paths.data_dir())
 
     def _handle_signal(signum, _frame):
         logger.info("Signal %s reçu, arrêt en cours...", signum)

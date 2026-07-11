@@ -30,6 +30,7 @@ class StatusReporter:
         self._current: str | None = None   # PDF en cours de traitement
         self._recent: deque[dict] = deque(maxlen=15)
         self._started_at = time.time()
+        self._paused = False
         self._dirty = True
         self._stop = threading.Event()
         self._thread = threading.Thread(target=self._flush_loop, daemon=True)
@@ -46,6 +47,12 @@ class StatusReporter:
             self._pending = max(0, self._pending - 1)
             self._current = str(pdf)
             self._dirty = True
+
+    def set_paused(self, paused: bool) -> None:
+        with self._lock:
+            if self._paused != paused:
+                self._paused = paused
+                self._dirty = True
 
     def on_done(self, pdf: Path, status: str) -> None:
         with self._lock:
@@ -69,6 +76,7 @@ class StatusReporter:
                 "current": current,
                 "current_name": Path(current).name if current else None,
                 "total": total,
+                "paused": self._paused,
                 "recent": list(self._recent),
                 "started_at": self._started_at,
             }

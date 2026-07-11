@@ -83,6 +83,10 @@ de la fenêtre de progression.
 - **Icône dans la barre des tâches** (bas à droite) avec une **fenêtre de
   progression** : nombre de PDF traités / restants, fichier en cours, barre
   d'avancement, derniers fichiers traités. Voir la section dédiée ci-dessous.
+- **Pause / reprise** du traitement depuis l'icône ou la fenêtre (bouton
+  « Mettre en pause »). Utile pour libérer le PC ponctuellement. Le service
+  reste en place ; pour l'arrêter complètement, arrêtez le service `Scribe`
+  (services.msc ou `Stop-Service Scribe`).
 - Tient un **journal** (`scribe.log`) de tout ce qu'il fait.
 
 > **Comment ça marche.** Le travail d'OCR est fait par un *service Windows*

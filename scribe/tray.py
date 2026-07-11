@@ -19,7 +19,7 @@ import tkinter as tk
 from pathlib import Path
 from tkinter import ttk
 
-from . import paths
+from . import control, paths
 from .status import read_status
 
 try:  # l'icône de la barre des tâches est optionnelle (dégradation gracieuse)
@@ -113,10 +113,13 @@ class TrayApp:
 
         btns = ttk.Frame(self._root)
         btns.pack(fill="x", padx=12, pady=8)
+        self._pause_btn = ttk.Button(btns, text="Mettre en pause",
+                                     command=self._toggle_pause)
+        self._pause_btn.pack(side="left")
         ttk.Button(btns, text="Ouvrir le dossier",
-                   command=lambda: _open(_watch_dir())).pack(side="left")
+                   command=lambda: _open(_watch_dir())).pack(side="left", padx=6)
         ttk.Button(btns, text="Ouvrir le journal",
-                   command=lambda: _open(_log_path())).pack(side="left", padx=6)
+                   command=lambda: _open(_log_path())).pack(side="left")
         ttk.Button(btns, text="Masquer", command=self._hide).pack(side="right")
 
         self._updated_var = tk.StringVar(value="")
@@ -135,7 +138,9 @@ class TrayApp:
             self._count_var.set(f"{done} sur {total} PDF traités")
             self._bar["maximum"] = max(total, 1)
             self._bar["value"] = done
-            if current:
+            if control.is_paused(paths.data_dir()):
+                self._current_var.set("⏸ En pause — traitement suspendu")
+            elif current:
                 self._current_var.set(f"En cours : {current}")
             elif pending == 0:
                 self._current_var.set("À jour — tous les PDF sont traités ✔")
@@ -151,11 +156,13 @@ class TrayApp:
                             f"[{item.get('status', '')}]")
 
             if self._icon is not None:
-                self._icon.title = f"Scribe : {done}/{total} traités"
+                paused = " (en pause)" if control.is_paused(paths.data_dir()) else ""
+                self._icon.title = f"Scribe : {done}/{total} traités{paused}"
         else:
             self._count_var.set("En attente du service Scribe…")
             self._current_var.set("Le service n'a pas encore publié d'état.")
 
+        self._update_pause_button()
         # Traiter les commandes venues de l'icône (thread pystray).
         self._drain_commands()
         self._root.after(POLL_MS, self._refresh)
@@ -166,6 +173,8 @@ class TrayApp:
                 cmd = self._cmds.get_nowait()
                 if cmd == "show":
                     self._show()
+                elif cmd == "pause":
+                    self._toggle_pause()
                 elif cmd == "folder":
                     _open(_watch_dir())
                 elif cmd == "log":
@@ -174,6 +183,16 @@ class TrayApp:
                     self._quit()
         except queue.Empty:
             pass
+
+    # -- pause / reprise --------------------------------------------------
+    def _toggle_pause(self) -> None:
+        paused = control.is_paused(paths.data_dir())
+        control.set_paused(paths.data_dir(), not paused)
+        self._update_pause_button()
+
+    def _update_pause_button(self) -> None:
+        paused = control.is_paused(paths.data_dir())
+        self._pause_btn.config(text="Reprendre" if paused else "Mettre en pause")
 
     # -- fenêtre : afficher / masquer / quitter --------------------------
     def _show(self) -> None:
@@ -203,6 +222,8 @@ class TrayApp:
         menu = pystray.Menu(
             pystray.MenuItem("Afficher la progression",
                              lambda: self._cmds.put("show"), default=True),
+            pystray.MenuItem("Mettre en pause / Reprendre",
+                             lambda: self._cmds.put("pause")),
             pystray.MenuItem("Ouvrir le dossier surveillé",
                              lambda: self._cmds.put("folder")),
             pystray.MenuItem("Ouvrir le journal",

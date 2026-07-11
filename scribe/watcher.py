@@ -24,6 +24,7 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 from watchdog.observers.polling import PollingObserver
 
+from . import control
 from .config import Config
 from .processor import process_pdf
 from .state import ProcessedStore
@@ -80,10 +81,12 @@ class OcrService:
         config: Config,
         state: ProcessedStore,
         reporter: StatusReporter | None = None,
+        control_dir=None,
     ) -> None:
         self._config = config
         self._state = state
         self._reporter = reporter
+        self._control_dir = control_dir  # dossier contenant le drapeau de pause
         self._queue: queue.PriorityQueue = queue.PriorityQueue()
         self._seq = itertools.count()
         self._pending: set[str] = set()
@@ -124,9 +127,25 @@ class OcrService:
             time.sleep(step)
         return False
 
+    # -- pause ------------------------------------------------------------
+    def _is_paused(self) -> bool:
+        return self._control_dir is not None and control.is_paused(self._control_dir)
+
     # -- boucle de travail -----------------------------------------------
     def _work_loop(self) -> None:
+        paused_announced = False
         while not self._stop.is_set():
+            # En pause : on ne retire rien de la file, on attend la reprise.
+            if self._is_paused():
+                if not paused_announced and self._reporter:
+                    self._reporter.set_paused(True)
+                    paused_announced = True
+                self._stop.wait(1.0)
+                continue
+            if paused_announced and self._reporter:
+                self._reporter.set_paused(False)
+                paused_announced = False
+
             try:
                 _prio, _seq, pdf = self._queue.get(timeout=1.0)
             except queue.Empty:
@@ -149,13 +168,11 @@ class OcrService:
                 if self._state.is_processed(pdf):
                     status = "déjà fait"
                     continue
-                try:
-                    processed = process_pdf(pdf, self._config)
-                    status = "ok" if processed else "ignoré"
-                finally:
-                    # Quel que soit le résultat, on mémorise la signature
-                    # actuelle pour ne pas retraiter en boucle.
-                    self._state.mark(pdf)
+                processed = process_pdf(pdf, self._config)
+                status = "ok" if processed else "ignoré"
+                # On ne mémorise QUE si le traitement s'est terminé sans erreur
+                # (succès ou saut délibéré). Un échec n'est pas marqué -> réessayé.
+                self._state.mark(pdf)
             except Exception:  # noqa: BLE001 - un fichier ne doit pas tuer le service
                 status = "erreur"
                 logger.exception("Erreur inattendue sur %s", pdf)

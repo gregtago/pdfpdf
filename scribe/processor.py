@@ -58,9 +58,12 @@ def process_pdf(pdf: Path, config: Config) -> bool:
     tmp_fd.close()
 
     try:
+        # Le fichier d'entrée et de sortie sont passés en arguments POSITIONNELS
+        # (le nom du 1er paramètre varie selon les versions d'OCRmyPDF ; le
+        # passer en nommé provoquait « missing argument input_file_or_options »).
         result = ocrmypdf.ocr(
-            input_file=str(pdf),
-            output_file=str(tmp_out),
+            str(pdf),
+            str(tmp_out),
             language=config.language_arg,
             skip_text=True,          # n'océrise que les pages sans texte
             deskew=config.deskew,
@@ -81,10 +84,11 @@ def process_pdf(pdf: Path, config: Config) -> bool:
         logger.error("Dépendance manquante (Tesseract/Ghostscript ?) : %s", exc)
         tmp_out.unlink(missing_ok=True)
         raise
-    except Exception as exc:  # noqa: BLE001 - on isole le fichier fautif
-        logger.error("Échec de l'OCR sur %s : %s", pdf, exc)
+    except Exception:
+        # Erreur inattendue : on nettoie et on PROPAGE (le fichier ne sera pas
+        # marqué comme traité, donc réessayé plus tard après correction).
         tmp_out.unlink(missing_ok=True)
-        return False
+        raise
 
     if result != ocrmypdf.ExitCode.ok:
         logger.warning("OCRmyPDF a renvoyé le code %s pour %s", result, pdf)

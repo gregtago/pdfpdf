@@ -75,6 +75,30 @@ jobs:
       - name: Préparer le dossier vendor
         run: powershell -ExecutionPolicy Bypass -File build/fetch-vendor.ps1
 
+      - name: Test OCR réel (PDF image -> texte recherchable)
+        timeout-minutes: 6
+        run: |
+          # LE test qui manquait : océrise un vrai PDF image avec l'exe gelé et
+          # vérifie qu'une couche texte est bien produite. Attrape les erreurs
+          # d'appel OCR (ex. mauvais arguments) que rien d'autre ne voit.
+          $work = Join-Path $env:TEMP "ocrtest"
+          New-Item -ItemType Directory -Force -Path $work | Out-Null
+          $pdf = Join-Path $work "scan.pdf"
+          python build/make_test_pdf.py "$pdf"
+          $wd = $work -replace '\\','/'
+          "watch_dir = `"$wd`"`nrescan_seconds = 0`nstable_seconds = 0" |
+            Out-File -Encoding utf8 (Join-Path $work "config.toml")
+          Start-Process -FilePath "dist/scribe/scribe.exe" `
+            -ArgumentList (Join-Path $work "config.toml"), "--once" -Wait
+          $txt = python -c "from pdfminer.high_level import extract_text; print(extract_text(r'$pdf'))"
+          Write-Host "Texte extrait du PDF : '$txt'"
+          if (-not ($txt -match '\w')) {
+            Write-Host "--- scribe.log ---"
+            Get-Content "$env:ProgramData\Scribe\scribe.log" -Tail 20 -ErrorAction SilentlyContinue
+            throw "ECHEC : aucun texte extrait, l'OCR n'a pas ajoute de couche texte."
+          }
+          Write-Host "OK : l'OCR produit bien une couche texte recherchable."
+
       - name: Installer Inno Setup
         run: choco install innosetup --no-progress -y
 
