@@ -5,6 +5,11 @@ name: Build Scribe (installeur Windows)
 
 on:
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Publier une release (ex. v1.0.0). Laisser vide = simple build."
+        required: false
+        default: ""
   push:
     branches: ["**"]
     tags: ["v*"]        # un tag vX.Y.Z publie une release permanente
@@ -85,11 +90,23 @@ jobs:
           path: dist/installer/*.exe
           if-no-files-found: error
 
-      - name: Publier la release (uniquement sur un tag vX.Y.Z)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Déterminer la version de release
+        id: rel
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '')
+        run: |
+          if ("${{ github.ref }}".StartsWith("refs/tags/v")) {
+            $tag = "${{ github.ref_name }}"
+          } else {
+            $tag = "${{ github.event.inputs.release_version }}"
+          }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Publier la release (tag vX.Y.Z ou lancement manuel avec version)
+        if: steps.rel.outputs.tag != ''
         uses: softprops/action-gh-release@v2
         with:
-          name: Scribe ${{ github.ref_name }}
+          tag_name: ${{ steps.rel.outputs.tag }}
+          name: Scribe ${{ steps.rel.outputs.tag }}
           body_path: CHANGELOG.md
           files: dist/installer/*.exe
           draft: false
