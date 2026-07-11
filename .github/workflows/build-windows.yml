@@ -92,10 +92,12 @@ jobs:
 
       - name: Déterminer la version de release
         id: rel
-        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '')
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/release' || (github.event_name == 'workflow_dispatch' && github.event.inputs.release_version != '')
         run: |
           if ("${{ github.ref }}".StartsWith("refs/tags/v")) {
             $tag = "${{ github.ref_name }}"
+          } elseif ("${{ github.ref }}" -eq "refs/heads/release") {
+            $tag = (Get-Content VERSION -Raw).Trim()   # version publiée depuis la branche release
           } else {
             $tag = "${{ github.event.inputs.release_version }}"
           }
