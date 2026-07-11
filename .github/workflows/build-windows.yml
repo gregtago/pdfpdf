@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
   push:
     branches: ["**"]
+    tags: ["v*"]        # un tag vX.Y.Z publie une release permanente
+
+permissions:
+  contents: write        # nécessaire pour créer la release
 
 jobs:
   build:
@@ -80,3 +84,13 @@ jobs:
           name: Scribe-Setup
           path: dist/installer/*.exe
           if-no-files-found: error
+
+      - name: Publier la release (uniquement sur un tag vX.Y.Z)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Scribe ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          files: dist/installer/*.exe
+          draft: false
+          prerelease: false

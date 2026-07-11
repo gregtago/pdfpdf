@@ -29,11 +29,41 @@ cas d'incident, et n'exige aucun prérequis (Tesseract et Ghostscript sont
 embarqués).
 
 - Comment obtenir/compiler l'installeur : **[build/README-build.md](build/README-build.md)**
-- La compilation est automatisée sur Windows via GitHub Actions ; l'installeur
-  se télécharge dans l'onglet **Actions**.
+- Versions publiées (téléchargement permanent) : onglet **Releases** du dépôt.
+  La compilation est automatisée sur Windows via GitHub Actions.
 
 Les sections ci-dessous décrivent l'usage **manuel en Python** (développement,
 tests, ou installation sans passer par l'installeur).
+
+### Installeur non signé (avertissement Windows SmartScreen)
+
+L'installeur n'est **pas signé numériquement** : à la première exécution,
+Windows affiche « **Windows a protégé votre ordinateur** » (SmartScreen) ou un
+avertissement d'éditeur inconnu. Ce n'est pas un virus, c'est le comportement
+normal pour tout logiciel sans certificat payant.
+
+Pour l'installer malgré tout : cliquez sur **« Informations complémentaires »**
+puis sur **« Exécuter quand même »**. Une seule fois par version.
+
+Pour **supprimer complètement** cet avertissement, il faut signer l'exécutable
+avec un **certificat de signature de code** (payant, ~200–500 €/an, délivré par
+une autorité comme DigiCert, Sectigo, Certum…). Une fois le certificat obtenu,
+la signature peut être ajoutée automatiquement à la compilation (signtool dans
+GitHub Actions). Voir [build/README-build.md](build/README-build.md).
+
+### Où trouver le journal (log)
+
+Le journal détaillé de tout ce que fait Scribe se trouve dans un dossier
+**caché** de Windows :
+
+```
+C:\ProgramData\Scribe\scribe.log
+```
+
+`ProgramData` est masqué par défaut. Le plus simple : collez ce chemin dans la
+barre d'adresse de l'Explorateur, ou utilisez le raccourci **« Journal de
+Scribe »** créé dans le menu Démarrer, ou le bouton **« Ouvrir le journal »**
+de la fenêtre de progression.
 
 ---
 

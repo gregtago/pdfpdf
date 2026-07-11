@@ -80,3 +80,38 @@ Restart-Service Scribe
 > Ghostscript est distribué sous **AGPL**. Pour un usage purement interne à
 > l'étude, c'est sans conséquence ; en cas de redistribution commerciale du
 > logiciel, vérifiez les conditions de licence de Ghostscript.
+
+## Publier une version (release permanente)
+
+Le workflow crée automatiquement une **release GitHub** (téléchargement
+permanent + notes de version) quand on pousse un tag `vX.Y.Z` :
+
+```bash
+# 1. Mettre à jour AppVersion dans build/installer.iss et le CHANGELOG.md
+# 2. Créer et pousser le tag
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+L'installeur est alors compilé, attaché à la release et visible dans l'onglet
+**Releases**. Le corps de la release reprend `CHANGELOG.md`.
+
+## Signature du code (supprimer l'avertissement SmartScreen)
+
+L'installeur n'est pas signé : Windows affiche un avertissement à la première
+exécution. Pour le supprimer, il faut un **certificat de signature de code**
+(OV ou EV, payant, auprès de DigiCert / Sectigo / Certum…).
+
+Une fois le certificat disponible (idéalement stocké en secret GitHub ou sur un
+HSM cloud), on ajoute une étape de signature avant Inno Setup :
+
+```powershell
+# Exemple avec signtool (certificat .pfx) — à adapter :
+& signtool sign /f cert.pfx /p $env:CERT_PASSWORD /tr http://timestamp.digicert.com `
+    /td sha256 /fd sha256 dist\scribe\scribe.exe dist\scribe-tray\scribe-tray.exe
+```
+
+puis on signe aussi l'installeur produit par Inno Setup (`SignTool` intégré à
+Inno, ou une seconde commande signtool sur le `.exe` final). Un certificat
+**EV** donne une réputation SmartScreen immédiate ; un certificat **OV** la
+construit progressivement.
