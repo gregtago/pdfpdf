@@ -29,6 +29,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 ArchitecturesAllowed=x64compatible
 PrivilegesRequired=admin
 WizardStyle=modern
+SetupIconFile=..\assets\icon.ico
+UninstallDisplayIcon={app}\scribe-tray.exe
 
 [Languages]
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"

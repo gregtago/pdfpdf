@@ -59,16 +59,33 @@ def _open(path: Path | None) -> None:
             pass
 
 
+def _asset_path(name: str) -> Path | None:
+    """Localise une ressource (icône) en mode gelé (PyInstaller) ou dev."""
+    candidates = []
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        candidates.append(Path(meipass) / name)
+    candidates.append(paths.app_dir() / "assets" / name)
+    candidates.append(paths.app_dir() / name)
+    for c in candidates:
+        if c.exists():
+            return c
+    return None
+
+
 def _make_icon_image():
-    """Petite icône : un document avec une loupe (recherche/texte)."""
+    """Icône de la barre des tâches : le scribe (assets/icon.png)."""
+    p = _asset_path("icon.png")
+    if p is not None:
+        try:
+            return Image.open(str(p))
+        except Exception:  # noqa: BLE001
+            pass
+    # Repli minimal si l'image n'est pas trouvée.
     img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
     d.rounded_rectangle([10, 6, 46, 58], radius=6, fill=(240, 244, 250, 255),
                         outline=(40, 90, 160, 255), width=2)
-    for y in (18, 26, 34):
-        d.line([16, y, 40, y], fill=(120, 140, 170, 255), width=2)
-    d.ellipse([30, 30, 52, 52], outline=(40, 90, 160, 255), width=4)
-    d.line([48, 48, 60, 60], fill=(40, 90, 160, 255), width=5)
     return img
 
 
@@ -87,6 +104,15 @@ class TrayApp:
         self._root.geometry("460x360")
         self._root.minsize(420, 320)
         self._root.protocol("WM_DELETE_WINDOW", self._hide)  # X = masquer
+
+        # Icône de la fenêtre (barre de titre / Alt+Tab).
+        icon_png = _asset_path("icon.png")
+        if icon_png is not None:
+            try:
+                self._win_icon = tk.PhotoImage(file=str(icon_png))
+                self._root.iconphoto(True, self._win_icon)
+            except tk.TclError:
+                pass
 
         pad = {"padx": 12, "pady": 6}
         header = ttk.Label(self._root, text="Scribe", font=("Segoe UI", 16, "bold"))

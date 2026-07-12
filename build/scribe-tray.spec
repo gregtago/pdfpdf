@@ -31,6 +31,9 @@ for pkg in ("pystray", "PIL"):
 # pystray choisit son backend dynamiquement : on force le backend Windows.
 hiddenimports += ["pystray._win32"]
 
+# Icône de la barre des tâches / fenêtre : embarquée à la racine du bundle.
+datas += [(os.path.join(REPO_ROOT, "assets", "icon.png"), ".")]
+
 
 a = Analysis(
     [os.path.join(SPECPATH, "tray-entrypoint.py")],
@@ -54,6 +57,7 @@ exe = EXE(
     name="scribe-tray",
     console=False,          # application fenêtrée
     disable_windowed_traceback=False,
+    icon=os.path.join(REPO_ROOT, "assets", "icon.ico"),
 )
 
 coll = COLLECT(

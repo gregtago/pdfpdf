@@ -67,6 +67,7 @@ exe = EXE(
     name="scribe",
     console=False,          # exécutable fenêtré : pas de console qui clignote
     disable_windowed_traceback=False,
+    icon=os.path.join(REPO_ROOT, "assets", "icon.ico"),
 )
 
 coll = COLLECT(
