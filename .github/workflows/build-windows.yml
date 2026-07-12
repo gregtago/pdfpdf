@@ -66,8 +66,21 @@ jobs:
           Write-Host "OK : scribe-tray.exe présent."
 
       - name: Installer les moteurs OCR (Tesseract, Ghostscript, NSSM)
+        timeout-minutes: 20
         run: |
-          choco install tesseract ghostscript nssm --no-progress -y
+          # Tesseract et NSSM s'installent sans souci.
+          choco install tesseract nssm --no-progress -y
+          # Ghostscript : son installeur silencieux crashe parfois (access
+          # violation, code -1073741819) sur les runners -> on réessaie avec
+          # --force jusqu'à réussir.
+          $ok = $false
+          for ($i = 1; $i -le 5; $i++) {
+            choco install ghostscript --no-progress -y --force
+            if ($LASTEXITCODE -eq 0) { $ok = $true; break }
+            Write-Host "Ghostscript : tentative $i échouée (code $LASTEXITCODE), nouvel essai dans 15 s…"
+            Start-Sleep -Seconds 15
+          }
+          if (-not $ok) { throw "Ghostscript n'a pas pu être installé après 5 tentatives." }
           # Rafraîchit le PATH pour la même session PowerShell.
           Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
           Update-SessionEnvironment
