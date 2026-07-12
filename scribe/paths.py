@@ -65,5 +65,8 @@ def configure_engines() -> None:
 
     tessdata = tesseract / "tessdata"
     if tessdata.is_dir():
-        # Valeur classique : dossier CONTENANT le répertoire tessdata.
-        os.environ.setdefault("TESSDATA_PREFIX", str(tesseract))
+        # Tesseract 5.x attend TESSDATA_PREFIX pointant SUR le dossier tessdata.
+        # On FORCE la valeur (pas de setdefault) : sinon un TESSDATA_PREFIX
+        # système préexistant masquerait nos données de langue embarquées
+        # (dont le français), provoquant « language data ... fra » manquant.
+        os.environ["TESSDATA_PREFIX"] = str(tessdata)
