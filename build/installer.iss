@@ -1,4 +1,4 @@
-; ---------------------------------------------------------------------------
+﻿; ---------------------------------------------------------------------------
 ; Installeur de Scribe (Inno Setup 6).
 ; Compilation : ISCC.exe build\installer.iss  (lancé depuis la racine du dépôt)
 ;
@@ -10,7 +10,7 @@
 
 #define AppName "Scribe"
 #define AppVersion "1.0.0"
-#define AppPublisher "Etude"
+#define AppPublisher "Grégoire Tagot"
 #define ServiceName "Scribe"
 
 [Setup]
@@ -30,7 +30,10 @@ ArchitecturesAllowed=x64compatible
 PrivilegesRequired=admin
 WizardStyle=modern
 SetupIconFile=..\assets\icon.ico
-UninstallDisplayIcon={app}\scribe-tray.exe
+UninstallDisplayIcon={app}\icon.ico
+; Page de conditions générales d'utilisation à accepter pendant l'installation.
+LicenseFile=..\assets\CGU.txt
+AppPublisherURL=mailto:gregoiretagot@tagot.notaires.fr
 
 [Languages]
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
@@ -40,6 +43,9 @@ Source: "..\dist\scribe\*"; DestDir: "{app}"; Flags: recursesubdirs createallsub
 Source: "..\dist\scribe-tray\*"; DestDir: "{app}\tray"; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "..\vendor\*"; DestDir: "{app}\vendor"; Flags: recursesubdirs createallsubdirs ignoreversion
 Source: "nssm.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assets\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assets\CGU.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assets\THIRD-PARTY-LICENSES.txt"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 ; Démarrage automatique de l'icône de progression à l'ouverture de session.
@@ -47,6 +53,8 @@ Name: "{commonstartup}\Scribe"; Filename: "{app}\tray\scribe-tray.exe"
 ; Raccourcis dans le menu Démarrer.
 Name: "{group}\Progression de Scribe"; Filename: "{app}\tray\scribe-tray.exe"
 Name: "{group}\Journal de Scribe"; Filename: "{commonappdata}\Scribe\scribe.log"
+Name: "{group}\Conditions d'utilisation"; Filename: "{app}\CGU.txt"
+Name: "{group}\Licences des composants tiers"; Filename: "{app}\THIRD-PARTY-LICENSES.txt"
 Name: "{group}\Désinstaller {#AppName}"; Filename: "{uninstallexe}"
 
 [Run]

@@ -1,0 +1,58 @@
+LICENCES DES COMPOSANTS TIERS - SCRIBE
+=======================================
+
+Scribe distribue les composants ci-dessous. Chacun reste soumis a sa propre
+licence. Les textes complets sont disponibles aux adresses indiquees.
+
+-------------------------------------------------------------------------------
+Tesseract OCR  -  moteur de reconnaissance de texte
+Licence : Apache License 2.0
+https://github.com/tesseract-ocr/tesseract/blob/main/LICENSE
+
+Donnees de langue (francais, anglais, OSD) : projet tessdata_best
+Licence : Apache License 2.0
+https://github.com/tesseract-ocr/tessdata_best
+
+Leptonica (utilise par Tesseract)
+Licence : de type BSD (2-clause)
+http://www.leptonica.org/about-the-license.html
+
+-------------------------------------------------------------------------------
+Ghostscript  -  traitement des fichiers PDF / PostScript
+Licence : GNU Affero General Public License, version 3 (AGPL v3)
+https://www.gnu.org/licenses/agpl-3.0.html
+
+Conformement a l'AGPL v3, le code source correspondant a la version distribuee
+de Ghostscript est disponible publiquement aux adresses suivantes :
+  https://ghostscript.com/releases/
+  https://github.com/ArtifexSoftware/ghostpdl-downloads
+
+Note : Ghostscript est egalement disponible sous licence commerciale aupres
+d'Artifex Software pour les usages incompatibles avec l'AGPL.
+
+-------------------------------------------------------------------------------
+OCRmyPDF  -  orchestration de l'OCR
+Licence : Mozilla Public License 2.0 (MPL 2.0)
+https://github.com/ocrmypdf/OCRmyPDF/blob/main/LICENSE
+
+-------------------------------------------------------------------------------
+NSSM (the Non-Sucking Service Manager)  -  gestion du service Windows
+Licence : domaine public
+https://nssm.cc/
+
+-------------------------------------------------------------------------------
+Bibliotheques Python embarquees (via PyInstaller)
+Composants sous licences libres permissives ou copyleft, notamment :
+  - pikepdf .......... MPL 2.0
+  - img2pdf .......... LGPL 3.0
+  - Pillow ........... licence HPND (type MIT)
+  - pdfminer.six ..... MIT
+  - reportlab ........ BSD
+  - watchdog ......... Apache 2.0
+  - pystray .......... LGPL 3.0
+Les textes de licence complets sont fournis dans les distributions respectives
+de ces bibliotheques (https://pypi.org).
+
+-------------------------------------------------------------------------------
+Le present recapitulatif est fourni a titre informatif. En cas de doute, les
+textes de licence officiels des projets font foi.

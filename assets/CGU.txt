@@ -1,0 +1,59 @@
+CONDITIONS GENERALES D'UTILISATION - SCRIBE
+Version 1.0.0
+
+Editeur : Gregoire Tagot
+
+En installant et en utilisant Scribe, vous acceptez les presentes conditions
+ainsi que les licences des composants tiers rappelees a l'article 5.
+
+--------------------------------------------------------------------------
+
+1. OBJET
+
+Scribe est un logiciel qui surveille un dossier de votre poste et applique une
+reconnaissance optique de caracteres (OCR) aux fichiers PDF numerises qu'il
+contient, afin de les rendre recherchables.
+
+2. REMPLACEMENT DES FICHIERS - IMPORTANT
+
+Par defaut, Scribe REMPLACE chaque fichier PDF traite par sa version
+recherchable. Vous etes seul responsable de la sauvegarde de vos fichiers avant
+et pendant l'utilisation du logiciel. L'editeur ne saurait etre tenu
+responsable d'une perte, d'une alteration ou d'une indisponibilite de donnees.
+
+3. FOURNITURE " EN L'ETAT "
+
+Le logiciel est fourni " en l'etat ", sans garantie d'aucune sorte, expresse ou
+implicite, notamment quant a sa qualite marchande, a son adequation a un usage
+particulier, a l'exactitude de la reconnaissance de texte, ou a un
+fonctionnement ininterrompu ou exempt d'erreur.
+
+4. LIMITATION DE RESPONSABILITE
+
+Dans les limites permises par la loi applicable, l'editeur ne pourra etre tenu
+responsable de tout dommage direct ou indirect resultant de l'utilisation ou de
+l'impossibilite d'utiliser le logiciel.
+
+5. LOGICIELS TIERS
+
+Scribe integre et distribue des composants tiers, soumis a leurs propres
+licences (le detail figure dans le fichier " Licences des composants tiers "
+installe avec le logiciel et accessible depuis le menu Demarrer) :
+
+ - Tesseract OCR ............ licence Apache 2.0
+ - Ghostscript ............. licence GNU AGPL v3
+ - OCRmyPDF ................ licence MPL 2.0
+ - NSSM ................... domaine public
+ - Leptonica .............. licence de type BSD
+
+L'installation de Scribe vaut egalement acceptation des termes de ces licences.
+
+6. DONNEES ET CONFIDENTIALITE
+
+Scribe fonctionne entierement en local sur votre poste. Aucune donnee, aucun
+document et aucun texte reconnu n'est transmis a l'editeur ni a un tiers.
+
+7. ACCEPTATION
+
+L'installation et l'utilisation de Scribe valent acceptation des presentes
+conditions generales d'utilisation.
